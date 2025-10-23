@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant STP Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .game-area {
+            padding: 30px;
+        }
+        
+        .phase {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .phase.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .phase-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+        
+        .city-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .city-card {
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .city-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .city-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+        
+        .city-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }
+        
+        .city-card .stats {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .customer-input-area {
+            margin-bottom: 30px;
+        }
+        
+        .customer-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .customer-form input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+        
+        .customer-form button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .customer-form button:hover {
+            transform: scale(1.05);
+        }
+        
+        .customer-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .customer-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .customer-item .name {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+        
+        .customer-item .description {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .customer-item button {
+            background: #f5576c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .conflict-check {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .conflict-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .conflict-item h4 {
+            color: #dc3545;
+            margin-bottom: 8px;
+        }
+        
+        .solution-area {
+            margin-top: 30px;
+        }
+        
+        .solution-input {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1em;
+            resize: vertical;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .summary-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #667eea;
+        }
+        
+        .summary-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .warning-box {
+            background: #ffe8e8;
+            border: 2px solid #ff6b6b;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .warning-box h3 {
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+        
+        .info-box {
+            background: #e8f4ff;
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Restaurant STP Challenge</h1>
+            <p>Master Segmentation, Targeting & Positioning</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <!-- Phase 1: City Selection -->
+            <div class="phase active" id="phase1">
+                <div class="phase-title">📍 Phase 1: Location Selection</div>
+                <p style="margin-bottom: 20px; font-size: 1.1em; color: #666;">Your group is opening a new restaurant. First, decide which city offers the best opportunity. Discuss as a team!</p>
+                
+                <div class="city-grid">
+                    <div class="city-card" onclick="selectCity('Manchester')">
+                        <h3>Manchester</h3>
+                        <p class="stats">Pop: 547,000<br>Young professionals & students<br>Diverse food scene</p>
+                    </div>
+                    <div class="city-card" onclick="selectCity('Birmingham')">
+                        <h3>Birmingham</h3>
+                        <p class="stats">Pop: 1,141,000<br>Multicultural population<br>Growing business district</p>
+                    </div>
+                    <div class="city-card" onclick="selectCity('Leeds')">
+                        <h3>Leeds</h3>
+                        <p class="stats">Pop: 793,000<br>Affluent suburbs<br>Strong nightlife economy</p>
+                    </div>
+                    <div class="city-card" onclick="selectCity('London')">
+                        <h3>London</h3>
+                        <p class="stats">Pop: 9,002,000<br>Highly competitive market<br>Diverse demographics</p>
+                    </div>
+                </div>
+                
+                <div class="nav-buttons">
+                    <div></div>
+                    <button class="btn btn-primary" onclick="nextPhase(2)" id="cityNextBtn" disabled>Continue to Customer Research →</button>
+                </div>
+            </div>
+            
+            <!-- Phase 2: Customer Identification -->
+            <div class="phase" id="phase2">
+                <div class="phase-title">👥 Phase 2: Identify Customer Segments</div>
+                <p style="margin-bottom: 20px; font-size: 1.1em; color: #666;">As a group, identify 5 different types of potential customers for your restaurant in <strong><span id="selectedCity1"></span></strong>. Think about their needs, preferences, and spending habits.</p>
+                
+                <div class="customer-input-area">
+                    <div class="customer-form">
+                        <input type="text" id="customerName" placeholder="Customer segment name (e.g., 'University Students')">
+                        <input type="text" id="customerDesc" placeholder="Brief description (e.g., 'Budget-conscious, late night dining')">
+                        <button onclick="addCustomer()">Add Segment</button>
+                    </div>
+                    
+                    <div class="info-box">
+                        <strong>💡 Tip:</strong> Consider demographics (age, income), psychographics (lifestyle, values), and behavioral factors (dining frequency, occasion).
+                    </div>
+                    
+                    <div class="customer-list" id="customerList"></div>
+                </div>
+                
+                <div class="nav-buttons">
+                    <button class="btn btn-secondary" onclick="previousPhase(1)">← Back</button>
+                    <button class="btn btn-primary" onclick="nextPhase(3)" id="customerNextBtn" disabled>Analyze Conflicts →</button>
+                </div>
+            </div>
+            
+            <!-- Phase 3: Conflict Analysis -->
+            <div class="phase" id="phase3">
+                <div class="phase-title">⚠️ Phase 3: Can You Serve ALL Equally Well?</div>
+                <p style="margin-bottom: 20px; font-size: 1.1em; color: #666;">This is where it gets tricky! Discuss as a group: what problems arise when trying to serve all these customer segments?</p>
+                
+                <div class="warning-box">
+                    <h3>🎯 Critical Thinking Challenge</h3>
+                    <p>Trying to please everyone often means pleasing no one. Your group must identify at least 3 conflicts that arise from serving all your customer segments.</p>
+                </div>
+                
+                <div class="summary-card">
+                    <h3>Your Customer Segments in <span id="selectedCity2"></span>:</h3>
+                    <div id="customerSummary"></div>
+                </div>
+                
+                <div class="conflict-check">
+                    <h3 style="margin-bottom: 15px;">🔍 Identify Conflicts (Add at least 3):</h3>
+                    <div class="customer-form">
+                        <input type="text" id="conflictInput" placeholder="Describe a conflict (e.g., 'Fine dining atmosphere vs family-friendly casual')">
+                        <button onclick="addConflict()">Add Conflict</button>
+                    </div>
+                    <div id="conflictList"></div>
+                </div>
+                
+                <div class="nav-buttons">
+                    <button class="btn btn-secondary" onclick="previousPhase(2)">← Back</button>
+                    <button class="btn btn-primary" onclick="nextPhase(4)" id="conflictNextBtn" disabled>Develop Strategy →</button>
+                </div>
+            </div>
+            
+            <!-- Phase 4: STP Strategy -->
+            <div class="phase" id="phase4">
+                <div class="phase-title">🎯 Phase 4: Your STP Strategy</div>
+                <p style="margin-bottom: 20px; font-size: 1.1em; color: #666;">Now for the big decision! As a group, develop your Segmentation, Targeting, and Positioning strategy.</p>
+                
+                <div class="info-box">
+                    <h3>📚 STP Framework Reminder:</h3>
+                    <p><strong>Segmentation:</strong> You've identified different customer groups<br>
+                    <strong>Targeting:</strong> Which 1-2 segments will you focus on?<br>
+                    <strong>Positioning:</strong> How will you position your restaurant to appeal to them?</p>
+                </div>
+                
+                <div class="solution-area">
+                    <h3>Target Segment Selection:</h3>
+                    <p style="margin-bottom: 10px;">Which customer segment(s) will you prioritize? (Choose 1-2)</p>
+                    <textarea class="solution-input" id="targetSegment" placeholder="Example: We will target young professionals because..."></textarea>
+                </div>
+                
+                <div class="solution-area">
+                    <h3>Positioning Statement:</h3>
+                    <p style="margin-bottom: 10px;">How will you position your restaurant? (Menu, pricing, atmosphere, brand)</p>
+                    <textarea class="solution-input" id="positioning" placeholder="Example: We will position ourselves as a modern, health-focused lunch spot with quick service and premium ingredients..."></textarea>
+                </div>
+                
+                <div class="solution-area">
+                    <h3>Why Not the Others?</h3>
+                    <p style="margin-bottom: 10px;">Explain why you're NOT targeting the other segments:</p>
+                    <textarea class="solution-input" id="reasoning" placeholder="Example: We're not targeting families with children because our quick-service model and limited seating wouldn't meet their needs..."></textarea>
+                </div>
+                
+                <div class="nav-buttons">
+                    <button class="btn btn-secondary" onclick="previousPhase(3)">← Back</button>
+                    <button class="btn btn-primary" onclick="showResults()">Complete Challenge →</button>
+                </div>
+            </div>
+            
+            <!-- Phase 5: Results -->
+            <div class="phase" id="phase5">
+                <div class="phase-title">🎉 Strategy Complete!</div>
+                
+                <div class="summary-card">
+                    <h3>Your Restaurant Strategy for <span id="selectedCity3"></span></h3>
+                    <div id="finalSummary"></div>
+                </div>
+                
+                <div class="info-box">
+                    <h3>💭 Discussion Questions for Your Group:</h3>
+                    <ul style="margin-left: 20px; line-height: 1.8;">
+                        <li>What trade-offs did you have to make?</li>
+                        <li>How would your positioning statement translate into actual business decisions (menu, prices, decor)?</li>
+                        <li>What risks does your strategy have?</li>
+                        <li>How might competitors respond to your positioning?</li>
+                        <li>Could you test your strategy before full launch? How?</li>
+                    </ul>
+                </div>
+                
+                <div class="warning-box">
+                    <h3>🎓 Key Learning Point:</h3>
+                    <p>Effective STP strategy requires tough choices. By focusing on specific segments and positioning clearly, you create a stronger brand identity and deliver better value to your target customers - even though it means turning away others. This is the essence of strategic marketing!</p>
+                </div>
+                
+                <div class="nav-buttons">
+                    <button class="btn btn-primary" onclick="resetGame()">Start New Strategy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            city: '',
+            customers: [],
+            conflicts: [],
+            targetSegment: '',
+            positioning: '',
+            reasoning: ''
+        };
+
+        function updateProgress() {
+            const phase = document.querySelectorAll('.phase.active')[0].id;
+            const progress = {
+                'phase1': 20,
+                'phase2': 40,
+                'phase3': 60,
+                'phase4': 80,
+                'phase5': 100
+            };
+            document.getElementById('progressBar').style.width = progress[phase] + '%';
+        }
+
+        function selectCity(city) {
+            gameState.city = city;
+            document.querySelectorAll('.city-card').forEach(card => {
+                card.classList.remove('selected');
+                if (card.querySelector('h3').textContent === city) {
+                    card.classList.add('selected');
+                }
+            });
+            document.getElementById('cityNextBtn').disabled = false;
+        }
+
+        function addCustomer() {
+            const name = document.getElementById('customerName').value.trim();
+            const desc = document.getElementById('customerDesc').value.trim();
+            
+            if (name && desc && gameState.customers.length < 5) {
+                gameState.customers.push({ name, description: desc });
+                document.getElementById('customerName').value = '';
+                document.getElementById('customerDesc').value = '';
+                renderCustomerList();
+            }
+        }
+
+        function renderCustomerList() {
+            const list = document.getElementById('customerList');
+            list.innerHTML = gameState.customers.map((c, i) => `
+                <div class="customer-item">
+                    <div>
+                        <div class="name">${i + 1}. ${c.name}</div>
+                        <div class="description">${c.description}</div>
+                    </div>
+                    <button onclick="removeCustomer(${i})">Remove</button>
+                </div>
+            `).join('');
+            
+            document.getElementById('customerNextBtn').disabled = gameState.customers.length !== 5;
+        }
+
+        function removeCustomer(index) {
+            gameState.customers.splice(index, 1);
+            renderCustomerList();
+        }
+
+        function addConflict() {
+            const conflict = document.getElementById('conflictInput').value.trim();
+            if (conflict && gameState.conflicts.length < 10) {
+                gameState.conflicts.push(conflict);
+                document.getElementById('conflictInput').value = '';
+                renderConflictList();
+            }
+        }
+
+        function renderConflictList() {
+            const list = document.getElementById('conflictList');
+            list.innerHTML = gameState.conflicts.map((c, i) => `
+                <div class="conflict-item">
+                    <h4>Conflict ${i + 1}:</h4>
+                    <p>${c}</p>
+                </div>
+            `).join('');
+            
+            document.getElementById('conflictNextBtn').disabled = gameState.conflicts.length < 3;
+        }
+
+        function nextPhase(phaseNum) {
+            if (phaseNum === 2) {
+                document.getElementById('selectedCity1').textContent = gameState.city;
+            } else if (phaseNum === 3) {
+                document.getElementById('selectedCity2').textContent = gameState.city;
+                document.getElementById('customerSummary').innerHTML = 
+                    gameState.customers.map((c, i) => `<p><strong>${i + 1}. ${c.name}:</strong> ${c.description}</p>`).join('');
+            }
+            
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            document.getElementById('phase' + phaseNum).classList.add('active');
+            updateProgress();
+            window.scrollTo(0, 0);
+        }
+
+        function previousPhase(phaseNum) {
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            document.getElementById('phase' + phaseNum).classList.add('active');
+            updateProgress();
+            window.scrollTo(0, 0);
+        }
+
+        function showResults() {
+            gameState.targetSegment = document.getElementById('targetSegment').value;
+            gameState.positioning = document.getElementById('positioning').value;
+            gameState.reasoning = document.getElementById('reasoning').value;
+            
+            document.getElementById('selectedCity3').textContent = gameState.city;
+            document.getElementById('finalSummary').innerHTML = `
+                <h4>📍 Location: ${gameState.city}</h4>
+                <h4 style="margin-top: 15px;">🎯 Target Segments:</h4>
+                <p>${gameState.targetSegment || 'Not specified'}</p>
+                <h4 style="margin-top: 15px;">💡 Positioning:</h4>
+                <p>${gameState.positioning || 'Not specified'}</p>
+                <h4 style="margin-top: 15px;">❌ Segments Not Targeted:</h4>
+                <p>${gameState.reasoning || 'Not specified'}</p>
+                <h4 style="margin-top: 15px;">⚠️ Conflicts Identified:</h4>
+                ${gameState.conflicts.map((c, i) => `<p>${i + 1}. ${c}</p>`).join('')}
+            `;
+            
+            nextPhase(5);
+        }
+
+        function resetGame() {
+            gameState = {
+                city: '',
+                customers: [],
+                conflicts: [],
+                targetSegment: '',
+                positioning: '',
+                reasoning: ''
+            };
+            document.querySelectorAll('.city-card').forEach(card => card.classList.remove('selected'));
+            document.getElementById('customerList').innerHTML = '';
+            document.getElementById('conflictList').innerHTML = '';
+            document.getElementById('targetSegment').value = '';
+            document.getElementById('positioning').value = '';
+            document.getElementById('reasoning').value = '';
+            document.getElementById('cityNextBtn').disabled = true;
+            document.getElementById('customerNextBtn').disabled = true;
+            document.getElementById('conflictNextBtn').disabled = true;
+            nextPhase(1);
+        }
+
+        updateProgress();
+    </script>
+</body>
+</html>
